@@ -1,0 +1,23 @@
+script "Site Admin Config"
+
+global gAdminConfig
+global gData, gTheme
+
+
+command siteAdminConfig
+  put "MDBootstrap" into gTheme["theme_name"]
+
+  -- config settings for photo uploads / resizing
+  put "4000, 3000, false" into gAdminConfig["photo sizes"]["large"]
+  put "1600,  1200, false" into gAdminConfig["photo sizes"]["medium"]
+  put " 400,  300, false" into gAdminConfig["photo sizes"]["small"]
+  put "  80,   60, false" into gAdminConfig["photo sizes"]["thumb"]
+  
+  put "media/photos" into gAdminConfig["imageBase"] 
+  put TRUE into gAdminConfig["UseSubFolders"] 
+  
+  -- set the username and settings for checking if allowed to duo admin stuff
+  put "alextweedly"  into gAdminConfig["username"]
+  put TRUE into gAdminConfig["isadmin"]   
+	
+end siteAdminConfig 

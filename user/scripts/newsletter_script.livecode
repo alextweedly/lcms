@@ -1,0 +1,30 @@
+script "Newsletter Lib"
+--> all handlers
+
+-- custom filter / sorter for newletter archive 
+
+-- 
+function customize_newsletter pArray, pADetail
+--   printarray "detail", pADetail
+   put putWithDefault(pADetail["count"], 3) into tNPerRow  -- defaulting to 3-grid !!
+
+   if pArray is an array then
+     put the keys of pArray into tKeys
+     sort lines of tKeys descending by pArray[each]["file"] 
+     put 0 into tNum
+     put "XXXX" into tLastYear
+     repeat for each line K in tKeys
+       repeat while (tLastYear <> char 1 to 4 of word 3 of pArray[K]["content"]) AND (tNum mod tNPerRow <> 0)
+--         pl "blanking" && tLastYear && char 1 to 4 of word 3 of pArray[K]["content"] && tNum && tNPerRow && tNum mod tNPerRow
+         add 1 to tNum
+         put empty into tA[tNum]
+       end repeat
+       add 1 to tNum
+       put pArray[K] into tA[tNum]
+       put char 1 to 4 of word 3 of pArray[K]["content"] into tLastYear
+     end repeat
+     return tA
+   else
+     return pArray
+   end if
+end customize_newsletter

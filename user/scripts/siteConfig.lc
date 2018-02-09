@@ -1,0 +1,19 @@
+script "Site Config"
+
+global gData, gTheme
+
+command siteConfig
+  -- And set the site name (i.e. menu system) and theme
+  put "bears" into gData["site_name"]
+  -- put "MDBootstrap" into gTheme["theme_name"]
+  -- put "BasicTheme" into gTheme["theme_name"]
+  put "retro" into gTheme["theme_name"]
+  
+  put "Web site for Arduaine, Kilmelford and Kilninver" into gData["pageDescription"]
+  put "Kilmelford,Kilninver,Arduaine" into gData["pageKeywords"]
+
+  put "Arduaine, Kilmelford and Kilninver" into gData["pageTitle"]
+
+  put "Arduaine, Kilmelford and Kilninver" into gData["pageBanner"]
+  put "Website  for Arduaine, Kilmelford and Kilninver." into gData["pageBannerText"] 
+end siteConfig 

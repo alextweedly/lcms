@@ -1,0 +1,11 @@
+	<article>
+        	<header>
+                       <a name='id_[[stripCR(tA["id"])]]'></a>
+			<h2>[[tA["headline"] ]] </h2>
+		   <p>[[ tA["author"] ]]
+                   <p>[[tA["Date"] ]]
+		</header>
+
+ 			<p> [[ markdownToHTML(tA["content"]) ]]
+
+	</article>

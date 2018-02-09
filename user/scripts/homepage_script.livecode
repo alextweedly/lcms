@@ -1,0 +1,43 @@
+script "Homepage Lib"
+--> all handlers
+
+-- custom filter / sorter for home page
+--  expects a set of mixed articles and events
+--  (articles have a DateExpired, events don't - they have DateAndTime )
+--  for events, sets 
+--     the 'author' to 'Calendar'
+--     the "Date" to DateAndTime
+-- for articles, sets
+--     the Date to the DatePublished
+--
+-- and ALSO sorts them together in ascending date order
+
+-- 
+function customize_homepage pArray, pADetail
+--   printarray "detail", pADetail
+--  printarray "before", pArray
+  
+   if pArray is an array then
+     put the keys of pArray into tKeys
+     repeat for each line K in tKeys
+       if pArray[K]["DatePublished"] is not empty then
+         put pArray[K]["DatePublished"] into pArray[K]["Date"]
+       else
+         put word 1 of pArray[K]["DateAndTime"] into pArray[K]["Date"]
+         put "Calendar" into pArray[K]["Author"]
+       end if
+     end repeat
+--  printarray "after", pArray
+
+     sort lines of tKeys ascending by pArray[each]["Date"] 
+     put 0 into tNum
+     repeat for each line K in tKeys
+       add 1 to tNum
+       put pArray[K] into tA[tNum]
+     end repeat
+--     printarray "final", tA
+     return tA
+   else
+     return pArray
+   end if
+end customize_homepage

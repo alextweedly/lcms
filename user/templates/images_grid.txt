@@ -1,0 +1,1 @@
+<img src='/<? return tA["folder"] & "/" & tA["size"] & "/" & tA["name"] ?>'  alt='new photo' class='img-fluid z-depth-1'><br>

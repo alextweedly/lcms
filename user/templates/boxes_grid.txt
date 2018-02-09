@@ -1,0 +1,3 @@
+  <h3>[[gOT("", tA["title"], "")]] </h3>
+	  [[tA["description"] ]]
+          [[makeButton(tA["button_title"],  gData["baseURL"] & "/" & tA["mainpage"] & "/" & tA["detail"]) ]]

@@ -1,0 +1,7 @@
+	<section><br>
+    	<h5>[[tA["headline"] ]] </h5>
+		   <i>[[ tA["author"] ]], [[tA["Date"] ]]</i>
+ 			<br> [[ markdownToHTML(tA["summary"]) ]]
+    		 [[makeButton("Continue Reading", "#id_" & stripCR(tA["id"])) ]]
+
+    </section>

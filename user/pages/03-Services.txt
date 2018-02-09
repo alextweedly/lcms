@@ -1,0 +1,46 @@
+
+[region narrow]
+[mdl t_section]
+
+some random small text
+
+[mdl end]
+[image medium hotel extra ale]
+more text
+
+[set articles, assign fred]
+[display fred, template article_summary, style list]
+
+
+
+
+and more text
+
+[region wide]
+
+[mdl text_section]
+
+first text!![image medium 24](extra alt)with more text
+<article>
+second text[!![image small sunset](more second)](Businesses) final text
+### Community Services
+This page gives info on the services available in the community.
+
+
+</article>
+[mdl end]
+
+
+[display fred, template article_main, style list]
+
+
+--[set boxes, where category=service, assign fred]
+--[display fred, template boxes_grid]
+--
+--interlude
+--
+--[display fred, template boxes_grid]
+
+
+[files names,folder newsletter_archive, type .pdf, count 3, custom customize_newsletter, template button_grid ]
+[region end]
