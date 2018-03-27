@@ -597,7 +597,7 @@ end doSet
 
 function fromTheme pName, pWhichEnd
    local tResult
-   put lcmsLoadView(gTheme["theme_name"] & "/" & pName & "_" & pWHichend, TRUE) &CR after tResult
+   put lcmsLoadView(gTheme["theme_name"] & "/" & pName & "_" & pWhichend) &CR after tResult
    return tResult
 end fromTheme
 
@@ -717,12 +717,15 @@ function outMultipleObjects pAObjects, pDetail, pTPL
    -- pTPL - the template name
    local t_local_debug
    local tResult
-   
+
+   put TRUE into t_local_debug
+      
    switch pDetail["style"]
       case empty
          put "grid" into pDetail["style"]
       case "grid"
       case "list"
+      case "accordion"
          break
       case "debug"
          put "outputting multiple objects" into tResult
@@ -756,49 +759,78 @@ function outMultipleObjects pAObjects, pDetail, pTPL
       put pDetail["display_limit"] into tNumToDo 
    end if
    
-   if pDetail["style"] = "grid"  then
-      put fromTheme("variable_section", "header") after tResult
-      
-      put 0 into tCount
-      --  if t_local_debug then pl the number of elements in pAObjects && pDetail["display_limit"] && "--->" && tNumToDo
-      repeat with i = 1 to tNumToDo  
-         if tCount = 0 then
-            put fromTheme("variable_row", "header") after tResult
-         end if
-         put pAObjects[i] into tA
+   switch pDetail["style"]
+      case "grid"
+         put fromTheme("variable_section", "header") after tResult
          
-         -- and add/overwrite any values specified
-         repeat for each key K in pDetail["overwrite"]
-            put pDetail["overwrite"][K] into tA[K]
+         put 0 into tCount
+         --  if t_local_debug then pl the number of elements in pAObjects && pDetail["display_limit"] && "--->" && tNumToDo
+         repeat with i = 1 to tNumToDo  
+            if tCount = 0 then
+               put fromTheme("variable_row", "header") after tResult
+            end if
+            put pAObjects[i] into tA
+            
+            -- and add/overwrite any values specified
+            repeat for each key K in pDetail["overwrite"]
+               put pDetail["overwrite"][K] into tA[K]
+            end repeat
+            
+            put fromTheme("variable_item", "header") after tResult
+            put fillTemplate(tA, tTemplate) &CR after tResult	
+            put fromTheme("variable_item", "footer") after tResult
+            
+            add 1 to tCount
+            if tCount = tNPerRow then
+               put fromTheme("variable_row", "footer") after tResult
+               put 0 into tCount
+            end if
          end repeat
-         
-         put fromTheme("variable_item", "header") after tResult
-         put fillTemplate(tA, tTemplate) &CR after tResult	
-         put fromTheme("variable_item", "footer") after tResult
-         
-         add 1 to tCount
-         if tCount = tNPerRow then
+         if tCount <> 0 then
             put fromTheme("variable_row", "footer") after tResult
-            put 0 into tCount
          end if
-      end repeat
-      if tCount <> 0 then
-         put fromTheme("variable_row", "footer") after tResult
-      end if
-      				
-      put fromTheme("variable_section", "footer") after tResult
-   else
-      repeat with i = 1 to tNumToDo  
-         put pAObjects[i] into tA
+         				
+         put fromTheme("variable_section", "footer") after tResult
+         break
          
-         -- and add/overwrite any values specified
-         repeat for each key K in pDetail["overwrite"]
-            put pDetail["overwrite"][K] into tA[K]
+      case "list"
+         repeat with i = 1 to tNumToDo  
+            put pAObjects[i] into tA
+            
+            -- and add/overwrite any values specified
+            repeat for each key K in pDetail["overwrite"]
+               put pDetail["overwrite"][K] into tA[K]
+            end repeat
+            
+            put fillTemplate(tA, tTemplate) &CR after tResult	
          end repeat
+         break
          
-         put fillTemplate(tA, tTemplate) &CR after tResult	
-      end repeat
-   end if
+      case "accordion"
+         local tItemTemplate
+         put fromTheme("accordion", "header") after tResult
+         -- put lcmsGetView("accordion_item_header") into tItemTemplate 
+         repeat with i = 1 to tNumToDo  
+            put pAObjects[i] into tA
+            
+            -- and add/overwrite any values specified
+            repeat for each key K in pDetail["overwrite"]
+               put pDetail["overwrite"][K] into tA[K]
+            end repeat
+            
+            put putWithDefault(tA[pDetail["titlefield"]], tA["title"]) into gData["accordion"]["item_header"]
+            put i into gData["accordion"]["item_count"]
+            
+            put fromTheme("accordion_item", "header") after tResult
+            put fillTemplate(tA, tTemplate) &CR after tResult	
+            put fromTheme("accordion_item", "footer") after tResult
+            
+         end repeat
+         				
+         put fromTheme("accordion", "footer") after tResult
+         break
+         
+   end switch
    
    put CR after tResult
    return tResult

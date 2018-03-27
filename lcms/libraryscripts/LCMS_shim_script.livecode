@@ -61,7 +61,6 @@ end lcmsDBRow
 
 local sLoaded, sCached
 private function rLoadView pName, pIgnore
-   -- NB only in develoment (or at least non-server) context
    local tt, tResult
    if NOT (sLoaded[pName]) then
       put the defaultfolder into tt
@@ -101,14 +100,9 @@ function lcmsLoadDatabase
    end if
 end lcmsLoadDatabase
 
-
-function lcmsLoadView pView, pOther
-   if environment() = "server" then
---      return rigLoadView(pView, pOther)
-      return rLoadView(pView, pOther)
-   else
-      return rLoadView(pView)
-   end if
+-- this used to use rigLoadView in server context - but no longer does
+function lcmsLoadView pView
+   return rLoadView(pView)
 end lcmsLoadView
 
 command lcmsPutCookie pMessage, pScope, pOther

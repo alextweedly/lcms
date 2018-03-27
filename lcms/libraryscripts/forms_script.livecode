@@ -11,17 +11,13 @@ end lcmsFormsVersion
 
 function lcmsFormStartGeneral pController -- and further params()
    local tResult
-   pl "f" && paramcount() && param(2) &":"& param(3) &":"& param(4) &":"& param(5)
+
    put "<div>" & CR into tResult
---??   if paramcount() = 3 then  -- assume it is a query string version
---??      put "<form method='post' action='ignite.lc?c=" & pController & "&m=" & param(2) & "'>" & CR after tResult
---??   else -- / separated
-    put "<form method='post' action='/igniter.lc/" & pController after tResult
-    repeat with i = 2 to paramcount()
-       put "/" & param(i) after tResult
-    end repeat
-    put "'>" & CR after tResult
---??   end if
+   put "<form method='post' action='/igniter.lc/" & pController after tResult
+   repeat with i = 2 to paramcount()
+      put "/" & param(i) after tResult
+   end repeat
+   put "'>" & CR after tResult
    return tResult
 
 end lcmsFormStartGeneral
