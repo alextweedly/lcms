@@ -16,7 +16,7 @@ end if
 start using stack tt
 
 
-repeat for each word W in "LCMS_shim common forms html arrayjson"
+repeat for each word W in "LCMS_shim common forms arrayjson"
   put W & "_script.livecode" into tFile
   if there is a file ("user/libraryscripts" & tFile) then
     put ("user/libraryscripts/" & tFile) into tt
