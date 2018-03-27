@@ -1,1 +1,0 @@
- [[makeButton(tA["content"], "/" & tA["folder"] & "/" & tA["file"]) ]]

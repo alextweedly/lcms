@@ -65,8 +65,10 @@ private function rLoadView pName, pIgnore
    local tt, tResult
    if NOT (sLoaded[pName]) then
       put the defaultfolder into tt
-      -- TODO user override themes
-      put URL ("file:lcms/themes/" & pName & ".lc") into sCached[pName]
+      put URL ("file:user/themes/" & pName & ".lc") into sCached[pName]
+      if sCached[pName] is empty then
+        put URL ("file:lcms/themes/" & pName & ".lc") into sCached[pName]
+      end if
       if sCached[pName] is empty then
         lcmsLogMessage "debug", "empty theme entry " & pName
       end if

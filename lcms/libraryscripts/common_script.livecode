@@ -15,24 +15,70 @@ end getCommonVersion
 
 global gDebug
 
-global gParams
-
-
-global LOGGEDIN, SITENAME, CURRENTUSER, USERDATA
-global HOST, SELF, SELF_FULL_PATH, ADMIN, USEMENUHEADER
-
-put false into gDebug
+--global LOGGEDIN, SITENAME, CURRENTUSER, USERDATA
+--global HOST, SELF, SELF_FULL_PATH, ADMIN, USEMENUHEADER
 
 // Handy utilities
-function trim p
-   return word 1 to -1 of p
+
+----------------------------------------------------------------------
+--| FUNCTION trim
+--|
+--| Summary: remove leading & trailing whitespace
+--| 
+--| Format:  trim(pString)
+--|
+--| Parameters: pString
+--|
+--| Return: trimmed version of <pString>
+----------------------------------------------------------------------
+function trim pString
+   return word 1 to -1 of pString
 end trim
 
+----------------------------------------------------------------------
+--| FUNCTION Q
+--|
+--| Summary: wrap quotes around text
+--| 
+--| Format:  Q()pString)
+--|
+--| Parameters: pString
+--|
+--| Return: quoted version of <pString>
+----------------------------------------------------------------------
+function Q pText
+   return quote & pText & quote
+end Q
+
+
+----------------------------------------------------------------------
+--| FUNCTION putWithDefault
+--|
+--| Summary: return either a value, or a default version of it
+--| 
+--| Format:  putWithDefault(pString, pDefault)
+--|
+--| Parameters: pString - the string to be used / defaulted
+--|                          pDefault - if <pSring> is empty, this is the default to use instead
+--|
+--| Return: either <pString> or its default <pDefault>
+----------------------------------------------------------------------
 function putWithDefault pVal, pDefault
-  if pVal is not empty then return pVal
-  return pDefault
+   if pVal is not empty then return pVal
+   return pDefault
 end putWithDefault
 
+----------------------------------------------------------------------
+--| FUNCTION todayAsSQL
+--|
+--| Summary: get date[time] in SQL format YYYY-MM-DD HH:MM:SS
+--| 
+--| Format:  todayAsSQL(pTime)
+--|
+--| Parameters: pTime - TRUE if the time should be appended
+--|
+--| Return: the current date[time] in SQL format YYYY-MM-DD HH:MM:SS
+----------------------------------------------------------------------
 function todayAsSQL pWithTime
    local tDate, tDateOut
    put the long internet date into tDate
@@ -45,16 +91,35 @@ function todayAsSQL pWithTime
 end todayAsSQL
 
 
-function getItemEasy pData, pItemNum, pDelim
-   set the itemdel to pDelim
-   return getItem(pData, pItemNum, pDelim)
-end getItemEasy
+----------------------------------------------------------------------
+--| FUNCTION getItem
+--|
+--| Summary: convenience function to get an item with different itemDelimiter
+--| 
+--| Format:  getItem(pString, pItemNum, pDelimiter)
+--|
+--| Parameters: pString - the input string
+--|                          pItemNum - number of item desired
+--|                          pDelimiter - item delimiter
+--|
+--| Return: one item frm the string
+----------------------------------------------------------------------
 function getItem pData, pItemNum, pDelim
    set the itemdel to pDelim
    return item pItemNum of pData
 end getItem
 
-
+----------------------------------------------------------------------
+--| FUNCTION md5hash
+--|
+--| Summary: get the legible Hex version of the md5 hash of a string
+--| 
+--| Format:  md5hash(pString)
+--|
+--| Parameters: pString - input string
+--|
+--| Return: md5has, converted to hex digits
+----------------------------------------------------------------------
 function md5hash pText
    local tMD5, tHash
    put md5digest(pText) into tMD5
@@ -62,88 +127,114 @@ function md5hash pText
    return tHash
 end md5hash
 
-command copyArrayByKey @pFrom, @pTo, pListOfEntries
-   repeat for each item I in pListOfEntries
-      put pFrom[I] into pTo[I]
+----------------------------------------------------------------------
+--|  COMMAND copyArrayByKey
+--|
+--| Summary: copies a given set of keyed elements from one array to another
+--| 
+--| Format:   copyArrayByKey pAFrom, pATo, pKeys
+--|
+--| Parameters: pAFrom - source array
+--|                          pATo - destination array
+--|                          pKeys -comma-separated list of keys 
+--|
+--| Return: pATo modified to contain addition/over-written elements
+----------------------------------------------------------------------
+command copyArrayByKey @pAFrom, @pATo, pKeys
+   repeat for each item I in pKeys
+      put pAFrom[I] into pATo[I]
    end repeat
 end copyArrayByKey
 
-command copyArrayAllKeys @pFrom, @pTo
-   repeat for each key I in pFrom
-      put pFrom[I] into pTo[I]
+----------------------------------------------------------------------
+--|  COMMAND copyArrayAllKeys
+--|
+--| Summary: copies all elements from one array to another
+--| 
+--| Format:   copyArrayAllKey pAFrom, pATo
+--|
+--| Parameters: pAFrom - source array
+--|                          pATo - destination array
+--|
+--| Return: pATo modified to contain addition/over-written elements
+----------------------------------------------------------------------
+command copyArrayAllKeys @pAFrom, @pATo
+   repeat for each key I in pAFrom
+      put pAFrom[I] into pATo[I]
    end repeat
 end copyArrayAllKeys
 
-function simplifyForURL pName
-  put tolower(pName) into pName
-  replace space with "_" in pName
-  return pName
-end simplifyForURL
-
-
--- calculate the seconds some time from now
-function secsFromNow pYearsFromNow, pMonthsFromNow, pDaysFromNow, pHoursFromNow
-   local tNow
-   
-   put the seconds into tNow
-   convert tNow to dateItems
-   
-   -- add the number of days/months, then do a double-convert to fix up any weird dates
-   add pYearsFromNow to item 1 of tNow
-   add pMonthsFromNow to item 2 of tNow
-   add pDaysFromNow to item 3 of tNow
-   add pHoursFromNow to item 4 of tNow
-   convert tNow to seconds
-   return tNow
-end secsFromNow
-
-
-
-
+--function simplifyForURL pName
+--  put tolower(pName) into pName
+--  replace space with "_" in pName
+--  return pName
+--end simplifyForURL
 --
--- date conversion - ? why ?
-function convertDate pDate
-   if char 5 of pDate <> "-" then return pDate
-   if char 8 of pDate <> "-" then return pDate
-   replace "-" with COMMA in pDate
-   put ",0,0,0,0" after pDate
-   --  put "HERE" && pDate & "<br>" & CR
-   convert pDate to  abbreviated date
-   return pDate
-end convertDate
+---- calculate the seconds some time from now
+--function secsFromNow pYearsFromNow, pMonthsFromNow, pDaysFromNow, pHoursFromNow
+--   local tNow
+
+--   put the seconds into tNow
+--   convert tNow to dateItems
+
+--   -- add the number of days/months, then do a double-convert to fix up any weird dates
+--   add pYearsFromNow to item 1 of tNow
+--   add pMonthsFromNow to item 2 of tNow
+--   add pDaysFromNow to item 3 of tNow
+--   add pHoursFromNow to item 4 of tNow
+--   convert tNow to seconds
+--   return tNow
+--end secsFromNow
+----
+---- date conversion - ? why ?
+--function convertDate pDate
+--   if char 5 of pDate <> "-" then return pDate
+--   if char 8 of pDate <> "-" then return pDate
+--   replace "-" with COMMA in pDate
+--   put ",0,0,0,0" after pDate
+--   --  put "HERE" && pDate & "<br>" & CR
+--   convert pDate to  abbreviated date
+--   return pDate
+--end convertDate
 
 -- Handy routines for output, handling quotes, etc.
-global gSomethingOutputAlready, gOutputDestination
+global gSomethingOutputAlready --  check for / give warning if you try to output a cookie too late
 
--- wrap quotes around text
-function wrapQ pText
-   return quote & pText & quote
-end wrapQ
-function Q pText
-   return quote & pText & quote
-end Q
-
--- output a line, with <br> if on a server
+----------------------------------------------------------------------
+--| FUNCTION trim
+--|
+--| Summary: output a line, with <br> if on a server
+--| 
+--| Format:  pl pString
+--|
+--| Parameters: pString
+--|
+--| Return: none
+----------------------------------------------------------------------
 command pl pStr
    put true into gSomethingOutputAlready
    if the environment = "server" then
       put pStr & "<br>" & CR
    else
-      put pStr & CR after gOutputDestination
+      put pStr & CR after msg
    end if
 end pl
 
--- output a line
-command pline pStr
-   put true into gSomethingOutputAlready
-   if the environment = "server" then
-      put pStr & CR
-   else
-      put pStr & CR after gOutputDestination
-   end if
-end pline
-
--- output a cookie 
+----------------------------------------------------------------------
+--| COMMAND putCookie
+--|
+--| Summary: output a cookie
+--| 
+--| Format:  putCookie pCookie, pValue, pScope, pUntil
+--|
+--| Parameters: 
+--|   pCookie - cookie name
+--|   pValue - vlaue for cookie
+--|   pScope - scope to be applied to
+--|   pUntil - expiration time
+--|
+--| Return: none
+----------------------------------------------------------------------
 command putCookie pCookie, pValue, pScope, pUntil
    if gSomethingOutputAlready then
       pl "attempt to set cookie after something already output"
@@ -162,15 +253,40 @@ command putCookie pCookie, pValue, pScope, pUntil
    end if
 end putCookie
 
--- Functions to display an array
-command printArray pArrayName, pArray
+----------------------------------------------------------------------
+--| COMMAND printArray
+--|
+--| Summary: output an array (usually for debugging)
+--| 
+--| Format:  printArray pName, pArray
+--|
+--| Parameters: pName - name (or just a helpful string)
+--|                          pArray - the array to be displayed
+--|
+--| Return: none
+----------------------------------------------------------------------
+command printArray pName, pArray
    if pArray is an array then
-      pl pArrayName & " = {"
+      pl pName & " = {"
       dumpArray pArray, " ", " "
       pl "}"
    end if
 end printArray
 
+----------------------------------------------------------------------
+--| COMMAND dumpArray
+--|
+--| Summary: output an array in pretty-print format (usually for debugging)
+--| 
+--| Format:  dumpArray  pArray, pIndent, pIndentString
+--|
+--| Parameters: 
+--|  pArray - the array to be displayed
+--|  pIndent - the indent to be used here
+--|  pIndentString - the cumulative indent string
+--|
+--| Return: none
+----------------------------------------------------------------------
 command dumpArray pArray, pIndent, pIndentString
    local tKeys, tError
    if pArray is an array then
@@ -188,7 +304,51 @@ command dumpArray pArray, pIndent, pIndentString
    end if
 end dumpArray
 
+----------------------------------------------------------------------
+--| FUNCTION formatArray
+--|
+--| Summary: return a pretty-print format of an array
+--| 
+--| Format:  formatarray(pArray, pIndent, pIndentString)
+--|
+--| Parameters: 
+--|  pArray - the array to be displayed
+--|  pIndent - the indent to be used here
+--|  pIndentString - the cumulative indent string
+--|
+--| Return: the formatted string
+----------------------------------------------------------------------
+function formatArray pArray, pIndent, pIndentString
+   local tKeys, tError, tResult
+   put empty into tResult
+   if pArray is an array then
+      put the keys of pArray into tKeys
+      sort lines of tKeys
+      repeat for each line tKey in tKeys
+         if pArray[tKey] is an array then
+            put pIndent & tKey & " = {" & "<br>" & CR after tResult
+            put formatArray(pArray[tKey], (pIndent & pIndentString), pIndentString)  & "<br>" & CR after tResult
+            put pIndent & "}"  & "<br>" & CR after tResult
+         else
+            put pIndent & tKey & " = " & pArray[tKey] & "<br>" & CR after tResult
+         end if
+      end repeat
+   end if
+   return tResult
+end formatArray
 
+
+----------------------------------------------------------------------
+--| FUNCTION outArray
+--|
+--| Summary: output array to show changes
+--| 
+--| Format:  outASrray(pArray)
+--|
+--| Parameters: pArray - the array 
+--|
+--| Return: string showing all items in array, with "id" first
+----------------------------------------------------------------------
 function outArray pAy
    -- function to output a string for an array, e.g. for DB changes
    local tKeys
@@ -211,51 +371,77 @@ function outArray pAy
    return tResult
 end outArray
 
-function inArray pText
-   -- function to input a string to an array, e.g. for DB changes
-   local tCurNum, tCurElement
-   set the itemDel to ":"
-   put 0 into tCurNum
-   put "none" into tCurElement
-   
-   local tA
-   repeat for each line L in pText
-      switch
-         case char 1 of L = ":"
-            put char 2 to -1 of L & CR after tA[tCurNum][tCurElement]
-            break
-         case L is empty
-            break
-         default
-            if L contains ":" then
-               if item 1 of L = "ID" then
-                  add 1 to tCurNum
-                  put item 2 to -1 of L into tA[tCurNum]["ID"]
-                  put "none" into tCurElement
-               else
-                  put item 2 to -1 of L into tA[tCurNum][item 1 of L]
-               end if
-               break
-            end if
-            put L into tCurElement
-            put empty into tA[tCurNum][tCurElement]
-            break
-      end switch    
-   end repeat
-   -- printarray "inarray", tA
-   return tA
-end inArray
+--function inArray pText
+--   -- function to input a string to an array, e.g. for DB changes
+--   local tCurNum, tCurElement
+--   set the itemDel to ":"
+--   put 0 into tCurNum
+--   put "none" into tCurElement
 
-command getParams
-  repeat for each key K in $_GET
-    put $_GET[K] into gParams[K]
-  end repeat
-  repeat for each key K in $_POST
-    put $_POST[K] into gParams[K]
-  end repeat
-  -- printarray "first", gParams
+--   local tA
+--   repeat for each line L in pText
+--      switch
+--         case char 1 of L = ":"
+--            put char 2 to -1 of L & CR after tA[tCurNum][tCurElement]
+--            break
+--         case L is empty
+--            break
+--         default
+--            if L contains ":" then
+--               if item 1 of L = "ID" then
+--                  add 1 to tCurNum
+--                  put item 2 to -1 of L into tA[tCurNum]["ID"]
+--                  put "none" into tCurElement
+--               else
+--                  put item 2 to -1 of L into tA[tCurNum][item 1 of L]
+--               end if
+--               break
+--            end if
+--            put L into tCurElement
+--            put empty into tA[tCurNum][tCurElement]
+--            break
+--      end switch    
+--   end repeat
+--   -- printarray "inarray", tA
+--   return tA
+--end inArray
+
+----------------------------------------------------------------------
+--| FUNCTION getParams
+--|
+--| Summary: consolidate $_GET and $_POST into one array
+--| 
+--| Format:  getParams())
+--|
+--| Parameters: 
+--|
+--| Return: array of all GET/POST parameters
+----------------------------------------------------------------------
+function  getParams
+   local tParams
+   repeat for each key K in $_GET
+      put $_GET[K] into tParams[K]
+   end repeat
+   repeat for each key K in $_POST
+      put $_POST[K] into tParams[K]
+   end repeat
+   return tParams
 end getParams
 
+----------------------------------------------------------------------
+--| FUNCTION decompose1
+--|
+--| Summary: check whether a string can be decomposed
+--| 
+--| Format:  decompose1(pString, pSeparator, @p1, @p2)
+--|
+--| Parameters: 
+--|  pString - string to be considered
+--|  pSeparator - separator around which the string will be decomposed
+--|  @p1, @p2 - the parts before and after the separator
+--|
+--| Return: TRUE if separator is found - and then also p1, p2 are return values
+----------------------------------------------------------------------
 function decompose1 pIn, pSep1, @p1, @p2
    local  t1
    put offset(pSep1, pIn) into t1
@@ -267,6 +453,21 @@ function decompose1 pIn, pSep1, @p1, @p2
    return FALSE
 end decompose1
 
+----------------------------------------------------------------------
+--| FUNCTION decompose2
+--|
+--| Summary: check whether a string can be decomposed twice
+--| 
+--| Format:  decompose2(pString, pSep1, pSpe2, @p1, @p2, @p3)
+--|
+--| Parameters: 
+--|  pString - string to be considered
+--|  pSep1 - separator around which the string will be decomposed
+--|  pSep2 - second separator around which the string will be decomposed
+--|  @p1, @p2, @p3 - the parts before, between and after the separator
+--|
+--| Return: TRUE if separator is found - and then also p1, p2 are return values
+----------------------------------------------------------------------
 function decompose2 pIn, pSep1, pSep2, @p1, @p2, @p3
    local t1, tIn, t2
    put offset(pSep1, pIn) into t1
@@ -283,22 +484,32 @@ function decompose2 pIn, pSep1, pSep2, @p1, @p2, @p3
    return FALSE
 end decompose2
 
-local sSubstitutions
-
+----------------------------------------------------------------------
+--| FUNCTION markdownToHTML
+--|
+--| Summary: convert Markdown-LITE to HTML 
+--| 
+--| Format:  markdownToHTML(pMD)
+--|
+--| Parameters: pMD - markdown-lite string
+--|
+--| Return: HTML 
+----------------------------------------------------------------------
 function markdownToHTML pMD
+   local tASubstitutions
    local LL, N, p1, p2, p3, p3a, p4, tSize, tAltText, tAQuery, tArray, tPath, tQuote
-   put empty into sSubstitutions
+   put empty into tASubstitutions
    repeat for each line L in pMD
       -- first extract any image specs
       put L into LL
       put 1 into N
-      -- LCMS references, as !![shortcode id](shortname)
+      -- LCMS references, as !![shortcode id](shortname)  -- e.g. !![image small 35](alternate text)
       repeat forever
          if decompose2(LL, "!![", "](", p1, p2, p3) then -- p1!![p2](p3
             if decompose1(p3, ")", p3a, p4) then        -- p1!![p2](p3a)p4
                -- now convert p2 and/or p3a into a LCMS reference type
                --               pl "image" && p1 &":"& p2  &":"& p3  &":"& p3a  &":"& p4
-               put empty into sSubstitutions[N]
+               put empty into tASubstitutions[N]
                if word 1 of p2 = "image" then
                   put word 2 of p2 into tSize
                   if word 3 of p2 is a number then
@@ -317,7 +528,7 @@ function markdownToHTML pMD
                         put tArray["alt"] into tAltText
                      end if
                      put tArray["folder"] & "/" & tSize & "/" & tArray["filename"] into tPath 
-                     put "<img src='/" & tPath & "' alt='" & tAltText & "'>" into sSubstitutions[N]
+                     put "<img src='/" & tPath & "' alt='" & tAltText & "'>" into tASubstitutions[N]
                   end if
                end if
                put p1 & numtochar(N) & p4 into LL
@@ -333,7 +544,7 @@ function markdownToHTML pMD
       repeat forever
          if decompose2(LL, "![", "](", p1, p2, p3) then -- p1![p2](p3
             if decompose1(p3, ")", p3a, p4) then        -- p1![p2](p3a)p4
-               put "<img src='" & p3a & "' alt='" & p2 & "'>" into sSubstitutions[N]
+               put "<img src='" & p3a & "' alt='" & p2 & "'>" into tASubstitutions[N]
                put p1 & numtochar(N) & p4 into LL
                add 1 to N
                next repeat
@@ -370,7 +581,7 @@ function markdownToHTML pMD
       end repeat
       
       repeat with i = 1 to N
-         replace numtochar(i) with sSubstitutions[i] in LL
+         replace numtochar(i) with tASubstitutions[i] in LL
       end repeat
       if LL is empty then put L into LL
       local W
@@ -398,66 +609,116 @@ function markdownToHTML pMD
    return tResult
 end markdownToHTML
 
+----------------------------------------------------------------------
+--| COMMAND markdown
+--|
+--| Summary: convert each element of an array form MDL to HTML
+--| 
+--| Format:  markdown pArray
+--|
+--| Parameters: pArray - array of strings, each converted separately
+--|
+--| Return: none (the array is modified)
+----------------------------------------------------------------------
 command markdown @pArray  
-  repeat for each key K in pArray
-    put markdownToHTML(pArray[K]) into pArray[K]
-  end repeat
+   repeat for each key K in pArray
+      put markdownToHTML(pArray[K]) into pArray[K]
+   end repeat
 end markdown
 
-function getDayNamesArray
-   local t1, t2, tA, rA
-  put the short weekdaynames into t1
-  put the weekdaynames into t2
-  -- NB the numbers and names are distinct - so stick them both in one array :-)
-  repeat with i = 1 to 7
-    put line i of t1 into rA[line i of t2]
-    put line i of t2 into rA[line i of t1]
-  end repeat
-  return rA
-end getDayNamesArray
 
+--function getDayNamesArray
+--   local t1, t2, tA, rA
+--  put the short weekdaynames into t1
+--  put the weekdaynames into t2
+--  -- NB the numbers and names are distinct - so stick them both in one array :-)
+--  repeat with i = 1 to 7
+--    put line i of t1 into rA[line i of t2]
+--    put line i of t2 into rA[line i of t1]
+--  end repeat
+--  return rA
+--end getDayNamesArray
+
+----------------------------------------------------------------------
+--| FUNCTION trim
+--|
+--| Summary: remove leading & trailing whitespace
+--| 
+--| Format:  trim(pString)
+--|
+--| Parameters: pString
+--|
+--| Return: trimmed version of <pString>
+----------------------------------------------------------------------
 function withBRforCR pData
-  replace CR with "<BR>" & CR in pData
---  if pData is not empty then 
---  if char -5 to -1 of pData <> ("<br>"&CR)  then 
---    put "<br>"&CR after pData
---  end if	
---end if
-  return pData
+   replace CR with "<BR>" & CR in pData
+   --  if pData is not empty then 
+   --  if char -5 to -1 of pData <> ("<br>"&CR)  then 
+   --    put "<br>"&CR after pData
+   --  end if	
+   --end if
+   return pData
 end withBRforCR
 
 
+----------------------------------------------------------------------
+--| FUNCTION gOT
+--|
+--| Summary: convenience function for optional text
+--| 
+--| Format:  gOT(pPrefix, pString, pSuffix, pNeedBRs)
+--|
+--| Parameters: 
+--|   pPrefix - prefix, output if needed
+--|   pString - string determining wither any output is needed
+--|   pSuffix - suffix if needed
+--|   pNeedBRs - set TRUE to get <br> s after each line
+--|
+--| Return: empty, or prefix&string&suffix
+----------------------------------------------------------------------
 function gOT pPrefix, pTest, pSuffix, pNeedBRs
-  if pTest = 0 then return empty
-  if pTest is empty then return empty
-  if pNeedBRs then
-    return pPrefix & withBRforCR(pTest) & pSuffix  
-  else
-    return pPrefix & pTest & pSuffix  
-  end if
+   if pTest = 0 then return empty
+   if pTest is empty then return empty
+   if pNeedBRs then
+      return pPrefix & withBRforCR(pTest) & pSuffix  
+   else
+      return pPrefix & pTest & pSuffix  
+   end if
 end gOT
 
-function getOptionalText pPrefix, pTest, pSuffix, pNeedBRs
-  if pTest = 0 then return empty
-  if pTest is empty then return empty
-  if pNeedBRs then
-    return pPrefix & withBRforCR(pTest) & pSuffix  
-  else
-    return pPrefix & pTest & pSuffix  
-  end if
-end getOptionalText
-
+----------------------------------------------------------------------
+--| FUNCTION randomSequence
+--|
+--| Summary: return 1...N in random order
+--| 
+--| Format:  randomSequence(pNum)
+--|
+--| Parameters: pNum - number of integers in the sequence
+--|
+--| Return: lines continaining the integers in random order
+----------------------------------------------------------------------
 function randomSequence pNum
    local tResult
-  repeat with i = 1 to pNum
-    put i &CR after tResult
-  end repeat 
-  sort lines of tResult by random(pNum)
-  return tResult
+   repeat with i = 1 to pNum
+      put i &CR after tResult
+   end repeat 
+   sort lines of tResult by random(pNum)
+   return tResult
 end randomSequence
 
-local sEscapeStrings
 
+----------------------------------------------------------------------
+--| FUNCTION escapeHTMLChars
+--|
+--| Summary: 
+--| 
+--| Format:  escapeHTMLChars(pString)
+--|
+--| Parameters: pString
+--|
+--| Return: 
+----------------------------------------------------------------------
+local sEscapeStrings
 function escapeHTMLChars pText
    local tOrig
   if sEscapeStrings is empty then
@@ -470,6 +731,17 @@ function escapeHTMLChars pText
   return pText
 end escapeHTMLChars
 
+----------------------------------------------------------------------
+--| FUNCTION unescapeHTMLChars
+--|
+--| Summary: 
+--| 
+--| Format:  unescapeHTMLChars(pString)
+--|
+--| Parameters: pString
+--|
+--| Return: 
+----------------------------------------------------------------------
 function unescapeHTMLChars pText
    local tOrig
    if sEscapeStrings is empty then
@@ -483,7 +755,17 @@ function unescapeHTMLChars pText
 end unescapeHTMLChars
 
 
--- send an email
+----------------------------------------------------------------------
+--| FUNCTION mail
+--|
+--| Summary: send an email
+--| 
+--| Format:  
+--|
+--| Parameters: 
+--|
+--| Return: 
+----------------------------------------------------------------------
 command mail pTo, pSub, pMsg, pFrom, pCc, pBcc, pHtml, pAtts
     local tMsg
 
@@ -544,6 +826,18 @@ command mail pTo, pSub, pMsg, pFrom, pCc, pBcc, pHtml, pAtts
           "SUBJ:" && pSub & CR &CR after URL ("file:./log_mail.txt")
 end mail
 
+----------------------------------------------------------------------
+--| FUNCTION parseMail
+--|
+--| Summary: parse an email
+--| 
+--| Format:  parseMail(pString)
+--|
+--| Parameters: pString
+--|
+--| Return: 
+----------------------------------------------------------------------
+
 -- handlers for mail parsing
 function parseMail pMail
    -- splits the email into the different parts (as an array)
@@ -581,7 +875,19 @@ function parseMail pMail
    return tA
 end parseMail
 
--- image handling and resizing 
+----------------------------------------------------------------------
+--| COMMAND setAreaProportional
+--|
+--| Summary: limit size of image, keeping relative proportions
+--| 
+--| Format:  setAreaProportional(pImageID, pWidth, pHeight)
+--|
+--| Parameters: 
+--|
+--| Return: none
+--|         Resizes an image such that both width & height are within
+--|         the specified limits; sizing is proportional
+----------------------------------------------------------------------
 command setAreaProportional pImageID, pWidth, pHeight
    local tProportionalWidth, tProportionalHeight, tRatio
    
@@ -603,7 +909,25 @@ command setAreaProportional pImageID, pWidth, pHeight
       unlock screen
    end if
 end setAreaProportional
-   
+
+----------------------------------------------------------------------
+--| FUNCTION resizeImageFile
+--|
+--| Summary: resize the image in a file
+--| 
+--| Format:  resizeImageFile(pFile, pOutFile, pMaxWid, pMaxHeight)
+--|
+--| Parameters: 
+--|        pFile - full path to the input file
+--|        pOutFile - full path name of where to create the output file
+--|        pMaxWid, pMaxHeight - maximum width/height for the output
+--|
+--|
+--|
+--| Return: Nothing. 
+--|         Creates the output file with a version of the image resized 
+--|         proportionally to be within the max limits specified
+----------------------------------------------------------------------
 function resizeImageFile pFile, pOutFile, pMaxWid, pMaxHeight
    local t, tt
    
@@ -623,6 +947,17 @@ function resizeImageFile pFile, pOutFile, pMaxWid, pMaxHeight
    return empty      -- "Done resize" & ":" & tt & ":" && pFile && pOutfile
 end resizeImageFile
 
+----------------------------------------------------------------------
+--| COMMAND appendNumericArrays
+--|
+--| Summary: append array pA2 after pA1, assuming both are numeric-indexed arrays
+--| 
+--| Format:  appendNumericArrays pA1, pA2
+--|
+--| Parameters: 
+--|
+--| Return: 
+----------------------------------------------------------------------
 command appendNumericArrays @pA1, pA2
    -- append array pA2 after pA1, assuming both are numeric-indexed arrays
    local tBase, tLen
@@ -631,22 +966,32 @@ command appendNumericArrays @pA1, pA2
    put item 2 of extents(pA1)  into tBase
    put item 2 of extents(pA2)  into tLen
    if tLen > 0 then
-     if t_local_debug then
-       pl "appending" && tBase && tLen
-     end if
-     repeat with i = 1 to tLen
-       put pA2[i] into pA1[tBase+i]
-     end repeat
-     if t_local_debug then
-       pl "to get" && the keys of pA1
-     end if
+      if t_local_debug then
+         pl "appending" && tBase && tLen
+      end if
+      repeat with i = 1 to tLen
+         put pA2[i] into pA1[tBase+i]
+      end repeat
+      if t_local_debug then
+         pl "to get" && the keys of pA1
+      end if
    end if
 end appendNumericArrays
 
 
---  escape shell characters: use this function before passing data to the shell
--- keep this at the end because it messes up Coda colouring
+----------------------------------------------------------------------
+--| FUNCTION shellEscape
+--|
+--| Summary: escape shell characters: use this function before passing data to the shell
+--| 
+--| Format:  shellEscape(pString)
+--|
+--| Parameters: pString
+--|
+--| Return: escaped version of <pString>
+----------------------------------------------------------------------
 function shellEscape pText
+-- keep this at the end because it messes up Coda colouring
    repeat for each char tChar in "\`!$" & quote
       replace tChar with "\" & tChar in pText
    end repeat

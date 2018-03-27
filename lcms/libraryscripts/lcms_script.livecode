@@ -4,15 +4,17 @@ global gParams, gData, gTheme
 command commonConfigSettings pPageName, pExtraSegment
   local tFile, tt, NN
   put "/igniter.lc/lcms" into gData["baseURL"]
-  put "set Banner Carousel mdl html image items files display region" into gData["actionTable"]
-  
-  	
-  getparams
+  put "set Banner Carousel mdl html image items files display region title header" into gData["actionTable"]
+    
+  put getparams() into gParams
   put tolower(pPageName) into gData["page"]
 
   put 3 into NN
   if pExtraSegment then
     	put lcmsFetchSegment(NN) into gData["page"]
+    	if gData["page"] is empty OR gData["page"] is false then
+     	  put "home" into gData["page"]
+     	end if
     	add 1 to NN
     	put "/" & pPageName after gData["baseURL"]
   end if
@@ -22,6 +24,8 @@ command commonConfigSettings pPageName, pExtraSegment
     put tt into gParams["detail"]
   end if
   
+--  printarray "gp", gParams
+--  printarray "gd", gData
   put gData["page"] into gData["activePage"]
   put gData["page"] into gParams["page"]
 	
@@ -38,6 +42,8 @@ command commonConfigSettings pPageName, pExtraSegment
       start using stack tt
     end if
   end repeat
+  
+  siteConfig
     
   -- email contact form is on every page
   put empty into gData["email"]["message"]
@@ -100,32 +106,6 @@ command testgdata
 end testgdata
 
 
--- command lcmsStartup pPageName, pExtraSegment
---   getparams
---   put tolower(pPageName) into gData["activepage"]
---   
---   put 3 into NN
---   if pExtraSegment then
---     	put rigFetchSegment(NN) into gParams["extra_segment"]
---     	add 1 to NN
---     	put "/" & pPageName after gData["baseURL"]
---   	put tolower(gParams["page"]) into gData["activepage"]
---   end if
---   put rigFetchSegment(NN, empty) into tt
---   if tt is FALSE then put empty into tt
---   if gParams["detail"] is empty AND tt is not empty then put tt into gParams["detail"]
--- 
--- --	add 1 to NN
--- --	put rigFetchSegment(NN) into tt
--- --	if tt is FALSE then put empty into tt
--- --	if gParams["pid"] is empty AND tt is not empty then put tt into gParams["pid"]
--- --
--- --    put gParams["pid"] into gData["projectID"]
--- 	
---   get rigLoadDatabase()
--- 
--- end lcmsStartup
-
 
 private function isItACommand pLine, pLineNum
 local p1, p3, tCommand, tFunction
@@ -179,7 +159,7 @@ command showpage
    set the itemDel to "-"
    put empty into tFound
    repeat for each line L in tt
-      if item 2 to -1 of L = gParams["page"] & ".txt" then
+      if item -1 of L = gParams["page"] & ".txt" then
          put URL ("file:" & L) into tFound
          exit repeat
       end if
@@ -192,8 +172,6 @@ command showpage
    local tResult
    
    put empty into tResult
-   -- every page begins (and ends) with the page header (footer)
-   put fromTheme("page", "header") after tResult
    
    put the millisecs into sTime3
    --  pl "after theme" && sTime3 - sTime1 && sTime3 - sTime2
@@ -212,12 +190,19 @@ command showpage
    --  pl "after interpret " && sTime3 - sTime1 && sTime3 - sTime2
    put the millisecs into sTime2
    
-   if sCurrentRegion is not empty then
+   if NOT (sCurrentRegion is empty OR sCurrentRegion = 0) then
+      put fromTheme("region", "footer") after tResult
       put fromTheme("allow_regions", "footer") after tResult
    end if
    
-   
+
+   -- every page begins (and ends) with the page header (footer)
+   --    NB ensure headers are done *after* the page has been interpretted
+   local t1
+   put fromTheme("page", "header") into t1
    put fromTheme("page", "footer") after tResult
+   
+   put t1 before tResult
    
    put the millisecs into sTime3
    --  pl "after all" && sTime3 - sTime1 && sTime3 - sTime2
@@ -310,6 +295,32 @@ private function processAndOutputObjects pAObjects, pADetail
 end processAndOutputObjects
 
 -- ----------- doFunctions - one per cmmand -----------
+
+-- [title + text]   or [title text]
+function doTitle @pLNum, pAText, pCommand
+   local tA, tAObjects, tResult
+   put splitEntries(pCommand) into tA
+   
+   if char 1 of tA["title"] = "+" then
+     put char 2 to -1 of tA["title"] after gData["pageTitle"]
+   else
+     put tA["title"] into gData["pageTitle"]
+   end if
+   return empty
+end doTitle
+
+-- [header + text]   or [header text]
+function doHeader @pLNum, pAText, pCommand
+   local tA, tAObjects, tResult
+   put splitEntries(pCommand) into tA
+
+   if char 1 of tA["header"] = "+" then
+     put char 2 to -1 of tA["header"] after gData["pageHeader"]
+   else
+     put tA["header"] into gData["pageHeader"]
+   end if
+   return empty
+end doHeader
 
 -- [banner,  where ..., orderby ...] e.g. [banner where Category=banner, orderby id=random]
 function doBanner @pLNum, pAText, pCommand
@@ -531,10 +542,12 @@ function doRegion @pLNum, pAText, pCommand
      put fromTheme("allow_regions", "header") after tResult
    else
      put fromTheme("region", "footer") after tResult
-     if tA["region"] = "end" then
-       put fromTheme("allow_regions", "footer") after tResult
-       return tResult
-     end if
+   end if
+
+   if tA["region"] = "end" then
+     put fromTheme("allow_regions", "footer") after tResult
+     put 0 into sCurrentRegion
+     return tResult
    end if
    
    put tA["region"] into sCurrentRegion
@@ -562,12 +575,18 @@ end doRegion
 
 --- [set DBTable, where col=val;col=val, count N, template template_name]
 function doSet @pLNum, pAText, pCommand
+   local t_local_debug
    local tA, tAObjects, tResult
    put splitEntries(pCommand) into tA
-   
+
+   put FALSE into t_local_debug
+
+   if t_local_debug then printarray "getting", tA   
    -- get this set from the DB
    put getMultipleObjects( tA["set"], tA ) into tAObjects
 
+   if t_local_debug then printarray "got ocjects", tAObjects
+   
    -- and process these and output this as a grid
    put processAndOutputObjects( tAObjects, tA ) &CR after tResult
    add 1 to pLNum
@@ -697,12 +716,19 @@ function outMultipleObjects pAObjects, pDetail, pTPL
    -- pDetail - details, such as values to overwrite
    -- pTPL - the template name
    local t_local_debug
+   local tResult
    
    switch pDetail["style"]
       case empty
          put "grid" into pDetail["style"]
       case "grid"
       case "list"
+         break
+      case "debug"
+         put "outputting multiple objects" into tResult
+         printarray "objobj", pAObjects
+         put formatArray(pAObjects,  " ", " ") after tResult
+         return tResult
          break
       default
          printarray "bad style", pDetail
@@ -719,7 +745,7 @@ function outMultipleObjects pAObjects, pDetail, pTPL
    local tTemplate
    put getTemplate(pTpl) into tTemplate
    
-   local tNPerRow, tResult, tNumToDo, tCount, tA
+   local tNPerRow, tNumToDo, tCount, tA
    put putWithDefault(pDetail["count"], 3) into tNPerRow  -- defaulting to 3-grid !!
    
    put empty into tResult

@@ -1,8 +1,0 @@
-<h3>{{icon:<i class='fa {icon}'></i>}}[[tA["name"] ]] </h3>
-    {{address:[[withBrforCR(tA["address"])]] }}
-    {{phone:Tel: {phone}<br>}}
-    {{email:e: {email}<br>}}
-    {{website:Website: <a href='http:{website}'  TARGET='_blank'>{website}</a><br>}}
-    {{facebook:<a href='http://facebook.com/{facebook}' TARGET='_blank'><i class='fa fa-faccebook'></i></a><br>}}
-    {{Description:{Description}<br>}}
-    [[gOT("[image small ", tA["image"], "]", FALSE) ]]
